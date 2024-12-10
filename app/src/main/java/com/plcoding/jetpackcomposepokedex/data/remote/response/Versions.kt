@@ -1,12 +1,12 @@
 package com.plcoding.jetpackcomposepokedex.data.remote.response
 
 data class Versions(
-    val generation-i: GenerationI,
-    val generation-ii: GenerationIi,
-    val generation-iii: GenerationIii,
-    val generation-iv: GenerationIv,
-    val generation-v: GenerationV,
-    val generation-vi: GenerationVi,
-    val generation-vii: GenerationVii,
-    val generation-viii: GenerationViii
+    val generationI: GenerationI,
+    val generationII: GenerationIi,
+    val generationIII: GenerationIii,
+    val generationIV: GenerationIv,
+    val generationV: GenerationV,
+    val generationVI: GenerationVi,
+    val generationVII: GenerationVii,
+    val generationVIII: GenerationViii
 )
