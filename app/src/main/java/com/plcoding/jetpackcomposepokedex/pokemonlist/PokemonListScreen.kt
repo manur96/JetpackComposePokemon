@@ -27,6 +27,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,14 +69,18 @@ fun PokemonListScreen(
                     .fillMaxWidth()
                     .align(Alignment.CenterHorizontally)
             )
+            val searchQuery = rememberSaveable { mutableStateOf("") }
             SearchBar(
                 hint = "Search...",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                viewModel.searchPokemonList(it)
-            }
+                    .padding(16.dp),
+                text = searchQuery.value,
+                onSearch = { query ->
+                    searchQuery.value = query
+                    viewModel.searchPokemonList(searchQuery.value)
+                }
+            )
             Spacer(modifier = Modifier.height(16.dp))
             PokemonList(navController= navController)
         }
@@ -86,11 +91,9 @@ fun PokemonListScreen(
 fun SearchBar(
     modifier: Modifier = Modifier,
     hint: String = "",
+    text: String = "",
     onSearch: (String) -> Unit = {}
 ) {
-    var text by remember {
-        mutableStateOf("")
-    }
     var isHintDisplayed by remember {
         mutableStateOf(hint != "")
     }
@@ -99,7 +102,6 @@ fun SearchBar(
         BasicTextField(
             value = text,
             onValueChange = {
-                text = it
                 onSearch(it)
             },
             maxLines = 1,
@@ -110,8 +112,8 @@ fun SearchBar(
                 .shadow(5.dp, CircleShape)
                 .background(Color.White, CircleShape)
                 .padding(horizontal = 20.dp, vertical = 12.dp)
-                .onFocusChanged {
-                    isHintDisplayed = !it.isFocused && text.isEmpty()
+                .onFocusChanged { focusState ->
+                    isHintDisplayed = !focusState.isFocused && text.isEmpty()
                 }
         )
         if (isHintDisplayed) {
