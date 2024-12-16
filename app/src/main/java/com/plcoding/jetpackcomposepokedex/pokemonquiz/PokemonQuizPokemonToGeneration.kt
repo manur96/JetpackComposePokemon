@@ -3,6 +3,7 @@ package com.plcoding.jetpackcomposepokedex.pokemonquiz
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,8 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -177,6 +180,7 @@ fun GenerationsToChoose(
                 LazyColumn(contentPadding = PaddingValues(16.dp)) {
                     items(shuffledGenerations.chunked(2)) { row ->
                         GenerationsRow(
+                            viewModel = viewModel,
                             entries = row
                         )
                     }
@@ -194,9 +198,17 @@ fun GenerationsToChoose(
 
 @Composable
 fun GenerationItem(
+    viewModel: PokemonQuizViewModel,
     generation: Generation,
-    modifier: Modifier
+    isCorrect: Boolean?,
+    modifier: Modifier,
+    onClick: () -> Unit
 ) {
+    val borderColor = when (isCorrect) {
+        true -> Color.Green
+        false -> Color.Red
+        else -> Color.Black
+    }
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
@@ -207,8 +219,12 @@ fun GenerationItem(
                 shape = RoundedCornerShape(8.dp)
             )
             .border(
-                BorderStroke(2.dp, Color.Black),
+                BorderStroke(2.dp, borderColor),
                 shape = RoundedCornerShape(8.dp)
+            )
+            .clickable(
+                enabled = viewModel.canClick.value,
+                onClick = onClick
             )
     ) {
         Text(
@@ -220,6 +236,7 @@ fun GenerationItem(
 
 @Composable
 fun GenerationsRow(
+    viewModel: PokemonQuizViewModel,
     entries: List<Generation>
 ) {
     Row(
@@ -227,9 +244,15 @@ fun GenerationsRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         entries.forEach { generation ->
+            val isCorrectState = remember { mutableStateOf<Boolean?>(null) }
             GenerationItem(
+                viewModel = viewModel,
                 generation = generation,
-                modifier = Modifier.weight(1f)
+                isCorrect = isCorrectState.value,
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    isCorrectState.value = viewModel.checkIfCorrectGeneration(generation.name)
+                }
             )
         }
     }

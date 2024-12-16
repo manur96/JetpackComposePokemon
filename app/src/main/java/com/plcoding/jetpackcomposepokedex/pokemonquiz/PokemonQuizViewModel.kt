@@ -3,6 +3,7 @@ package com.plcoding.jetpackcomposepokedex.pokemonquiz
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.plcoding.jetpackcomposepokedex.data.remote.response.Generation
 import com.plcoding.jetpackcomposepokedex.data.remote.response.GenerationResponse
 import com.plcoding.jetpackcomposepokedex.data.remote.response.Pokemon
 import com.plcoding.jetpackcomposepokedex.data.remote.response.PokemonSpeciesResponse
@@ -20,6 +21,7 @@ class PokemonQuizViewModel @Inject constructor(
     var pokemonInfo = mutableStateOf<Resource<Pokemon>>(Resource.Loading())
     var pokemonGeneration = mutableStateOf<Resource<PokemonSpeciesResponse>>(Resource.Loading())
     var generations = mutableStateOf<Resource<GenerationResponse>>(Resource.Loading())
+    var canClick = mutableStateOf(true)
 
     init {
         fetchRandomPokemon()
@@ -29,6 +31,12 @@ class PokemonQuizViewModel @Inject constructor(
         viewModelScope.launch {
             generations.value = repository.getAllGenerations()
         }
+    }
+
+
+    fun checkIfCorrectGeneration(selectedGeneration: String): Boolean {
+        canClick.value = false
+        return selectedGeneration == pokemonGeneration.value.data?.generation?.name
     }
 
     private fun fetchRandomPokemon() {
