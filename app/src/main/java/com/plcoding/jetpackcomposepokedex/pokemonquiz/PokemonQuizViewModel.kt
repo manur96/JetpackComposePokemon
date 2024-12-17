@@ -22,6 +22,7 @@ class PokemonQuizViewModel @Inject constructor(
     var pokemonGeneration = mutableStateOf<Resource<PokemonSpeciesResponse>>(Resource.Loading())
     var generations = mutableStateOf<Resource<GenerationResponse>>(Resource.Loading())
     var canClick = mutableStateOf(true)
+    var isCorrectState = mutableStateOf<Boolean?>(null)
 
     init {
         fetchRandomPokemon()
@@ -34,9 +35,16 @@ class PokemonQuizViewModel @Inject constructor(
     }
 
 
-    fun checkIfCorrectGeneration(selectedGeneration: String): Boolean {
+    fun checkIfCorrectGeneration(selectedGeneration: String): Boolean? {
         canClick.value = false
-        return selectedGeneration == pokemonGeneration.value.data?.generation?.name
+        isCorrectState.value = selectedGeneration == pokemonGeneration.value.data?.generation?.name
+        return isCorrectState.value
+    }
+
+    fun fetchNextPokemon() {
+        canClick.value = true
+        isCorrectState.value = null
+        fetchRandomPokemon()
     }
 
     private fun fetchRandomPokemon() {

@@ -1,34 +1,37 @@
 package com.plcoding.jetpackcomposepokedex.pokemonquiz
 
+import android.net.Proxy
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonColors
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.ButtonElevation
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.icons.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.plcoding.jetpackcomposepokedex.data.remote.response.Generation
@@ -52,7 +56,14 @@ fun PokemonToGenerationQuiz(
         modifier = Modifier.fillMaxSize()
     ) {
         Column {
-            Spacer(modifier = Modifier.height(40.dp))
+            PokemonToGenerationTopSection(
+                navController,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+            Spacer(modifier = Modifier.height(20.dp))
             when (viewModel.pokemonInfo.value) {
                 is Resource.Loading -> {
                     CircularProgressIndicator()
@@ -85,7 +96,7 @@ fun PokemonToGenerationQuiz(
                     Text(text = "Error: ${viewModel.pokemonInfo.value.message}")
                 }
             }
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             when (viewModel.pokemonGeneration.value) {
                 is Resource.Loading -> {
                     CircularProgressIndicator()
@@ -99,7 +110,61 @@ fun PokemonToGenerationQuiz(
                     Text(text = "Error: ${viewModel.pokemonGeneration.value.message}")
                 }
             }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            ) {
+                CorrectOrWrongText(viewModel)
+            }
+            if (!viewModel.canClick.value) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    if (viewModel.isCorrectState.value == false) {
+                        ShowCorrectAnswerButton(
+                            modifier = Modifier
+                                .weight(1f)
+                        )
+                    }
+                    ShowNextPokemonButton(
+                        viewModel = viewModel,
+                        modifier = Modifier
+                            .weight(1f)
+                    )
+                }
+            }
         }
+    }
+}
+
+@Composable
+fun PokemonToGenerationTopSection(
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        contentAlignment = Alignment.TopStart,
+        modifier = modifier
+            .background(
+                Color.Transparent
+            )
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = null,
+            tint = Color.Black,
+            modifier = Modifier
+                .size(36.dp)
+                .offset(16.dp, 16.dp)
+                .clickable {
+                    navController.popBackStack()
+                }
+        )
     }
 }
 
@@ -253,6 +318,133 @@ fun GenerationsRow(
                 onClick = {
                     isCorrectState.value = viewModel.checkIfCorrectGeneration(generation.name)
                 }
+            )
+        }
+    }
+}
+
+@Composable
+fun CorrectOrWrongText(
+    viewModel: PokemonQuizViewModel
+) {
+    when (viewModel.isCorrectState.value) {
+        true -> Row(
+            modifier = Modifier.padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = "Check",
+                tint = MaterialTheme.colors.onSurface,
+                modifier = Modifier
+                    .padding(horizontal = 6.dp)
+                    .size(18.dp)
+            )
+            Text(
+                text = "Correct answer!",
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colors.onSurface,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        false -> Row(
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Clear,
+                contentDescription = "Clear",
+                tint = MaterialTheme.colors.onSurface,
+                modifier = Modifier
+                    .padding(horizontal = 6.dp)
+                    .size(18.dp)
+            )
+            Text(
+                text = "Wrong answer ${"\uD83D\uDE1E"}",
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colors.onSurface,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        null -> Row { }
+    }
+}
+
+@Composable
+fun ShowCorrectAnswerButton(
+    modifier: Modifier
+) {
+    Button(
+        onClick = { },
+        border = BorderStroke(
+            2.dp,
+            color = Color.Black
+        ),
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = Color.Transparent
+        ),
+        elevation = ButtonDefaults.elevation(
+            defaultElevation = 0.dp,
+            pressedElevation = 2.dp,
+            focusedElevation = 2.dp
+        ),
+        modifier = modifier
+            .padding(8.dp)
+            .clip(RoundedCornerShape(4.dp))
+    ) {
+        Text(
+            text = "Show correct answer",
+            fontSize = 18.sp,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colors.onSurface
+        )
+    }
+}
+
+@Composable
+fun ShowNextPokemonButton(
+    viewModel: PokemonQuizViewModel,
+    modifier: Modifier
+) {
+    Button(
+        onClick = {
+            viewModel.fetchNextPokemon()
+        },
+        border = BorderStroke(
+            2.dp,
+            color = Color.Black
+        ),
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = Color.Transparent
+        ),
+        elevation = ButtonDefaults.elevation(
+            defaultElevation = 0.dp,
+            pressedElevation = 2.dp,
+            focusedElevation = 2.dp
+        ),
+        modifier = modifier
+            .padding(8.dp)
+            .clip(RoundedCornerShape(4.dp))
+    ) {
+        Row(
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Next Pokémon",
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colors.onSurface
+            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "ArrowForward",
+                tint = MaterialTheme.colors.onSurface,
+                modifier = Modifier
+                    .padding(horizontal = 6.dp)
+                    .size(18.dp)
             )
         }
     }
