@@ -1,6 +1,5 @@
 package com.plcoding.jetpackcomposepokedex.pokemonquiz
 
-import android.net.Proxy
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,12 +7,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
-import androidx.compose.material.ButtonColors
 import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.ButtonElevation
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -22,11 +18,9 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -39,7 +33,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.plcoding.jetpackcomposepokedex.data.remote.response.Generation
@@ -76,7 +69,6 @@ fun PokemonToGenerationQuiz(
                         Box(
                             modifier = Modifier
                                 .shadow(elevation = 4.dp, shape = RoundedCornerShape(8.dp))
-                                //.padding(horizontal = 8.dp, vertical = 12.dp)
                                 .background(
                                     color = Color(0xFFF0F0F0),
                                     shape = RoundedCornerShape(8.dp)
@@ -127,6 +119,7 @@ fun PokemonToGenerationQuiz(
                 ) {
                     if (viewModel.isCorrectState.value == false) {
                         ShowCorrectAnswerButton(
+                            viewModel = viewModel,
                             modifier = Modifier
                                 .weight(1f)
                         )
@@ -221,43 +214,15 @@ fun PokemonImage(viewModel: PokemonQuizViewModel) {
 fun GenerationsToChoose(
     viewModel: PokemonQuizViewModel
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.fetchAllGenerations()
-    }
-
-    when (val generationsResponse = viewModel.generations.value) {
-        is Resource.Loading -> {
-            CircularProgressIndicator()
-        }
-
-        is Resource.Success -> {
-            val allGenerations = generationsResponse.data?.results ?: emptyList()
-            val filteredGenerations = allGenerations.filter {
-                it.name != viewModel.pokemonGeneration.value.data?.generation?.name
-            }
-            if (filteredGenerations.size >= 3) {
-                val randomGenerations = filteredGenerations.shuffled().take(3)
-                val generationsToShow = randomGenerations + Generation(
-                    viewModel.pokemonGeneration.value.data?.generation?.name ?: "", ""
-                )
-                val shuffledGenerations = generationsToShow.shuffled()
-
-                LazyColumn(contentPadding = PaddingValues(16.dp)) {
-                    items(shuffledGenerations.chunked(2)) { row ->
-                        GenerationsRow(
-                            viewModel = viewModel,
-                            entries = row
-                        )
-                    }
-                }
-            } else {
-                Text(text = "There are not enough generations available.")
+    val randomGenerations = viewModel.randomGenerations.value
+    if (randomGenerations.isNotEmpty()) {
+        LazyColumn(contentPadding = PaddingValues(16.dp)) {
+            items(randomGenerations.chunked(2)) { row ->
+                GenerationsRow(viewModel = viewModel, entries = row)
             }
         }
-
-        is Resource.Error -> {
-            Text(text = "Error: ${generationsResponse.message}")
-        }
+    } else {
+        Text(text = "There are not enough generations available.")
     }
 }
 
@@ -265,15 +230,16 @@ fun GenerationsToChoose(
 fun GenerationItem(
     viewModel: PokemonQuizViewModel,
     generation: Generation,
-    isCorrect: Boolean?,
     modifier: Modifier,
     onClick: () -> Unit
 ) {
+    val isCorrect = viewModel.generationStates.value[generation.name]
     val borderColor = when (isCorrect) {
         true -> Color.Green
         false -> Color.Red
         else -> Color.Black
     }
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
@@ -287,10 +253,7 @@ fun GenerationItem(
                 BorderStroke(2.dp, borderColor),
                 shape = RoundedCornerShape(8.dp)
             )
-            .clickable(
-                enabled = viewModel.canClick.value,
-                onClick = onClick
-            )
+            .clickable(enabled = viewModel.canClick.value, onClick = onClick)
     ) {
         Text(
             text = parseGenerationToReadableString(generation.name),
@@ -309,14 +272,12 @@ fun GenerationsRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         entries.forEach { generation ->
-            val isCorrectState = remember { mutableStateOf<Boolean?>(null) }
             GenerationItem(
                 viewModel = viewModel,
                 generation = generation,
-                isCorrect = isCorrectState.value,
                 modifier = Modifier.weight(1f),
                 onClick = {
-                    isCorrectState.value = viewModel.checkIfCorrectGeneration(generation.name)
+                    viewModel.checkIfCorrectGeneration(generation.name)
                 }
             )
         }
@@ -374,10 +335,13 @@ fun CorrectOrWrongText(
 
 @Composable
 fun ShowCorrectAnswerButton(
+    viewModel: PokemonQuizViewModel,
     modifier: Modifier
 ) {
     Button(
-        onClick = { },
+        onClick = {
+            viewModel.showCorrectGeneration()
+        },
         border = BorderStroke(
             2.dp,
             color = Color.Black
