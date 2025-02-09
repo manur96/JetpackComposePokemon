@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -70,7 +71,12 @@ fun PokemonToGenerationQuiz(
                             modifier = Modifier
                                 .shadow(elevation = 4.dp, shape = RoundedCornerShape(8.dp))
                                 .background(
-                                    color = Color(0xFFF0F0F0),
+                                    Brush.verticalGradient(
+                                        listOf(
+                                            Color.Black,
+                                            Color.Gray
+                                        )
+                                    ),
                                     shape = RoundedCornerShape(8.dp)
                                 )
                                 .border(
@@ -150,7 +156,7 @@ fun PokemonToGenerationTopSection(
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = null,
-            tint = Color.Black,
+            tint = MaterialTheme.colors.onSurface,
             modifier = Modifier
                 .size(36.dp)
                 .offset(16.dp, 16.dp)
@@ -176,6 +182,7 @@ fun PokemonImage(viewModel: PokemonQuizViewModel) {
                     },
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
+                color = Color.White,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 10.dp)
@@ -237,7 +244,7 @@ fun GenerationItem(
     val borderColor = when (isCorrect) {
         true -> Color.Green
         false -> Color.Red
-        else -> Color.Black
+        else -> MaterialTheme.colors.onSurface
     }
 
     Box(
@@ -246,7 +253,7 @@ fun GenerationItem(
             .size(100.dp)
             .padding(8.dp)
             .background(
-                color = Color(0xFFF0F0F0),
+                color = Color.Gray,
                 shape = RoundedCornerShape(8.dp)
             )
             .border(
@@ -257,7 +264,8 @@ fun GenerationItem(
     ) {
         Text(
             text = parseGenerationToReadableString(generation.name),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = Color.White
         )
     }
 }
@@ -344,7 +352,7 @@ fun ShowCorrectAnswerButton(
         },
         border = BorderStroke(
             2.dp,
-            color = Color.Black
+            color = MaterialTheme.colors.onSurface
         ),
         colors = ButtonDefaults.buttonColors(
             backgroundColor = Color.Transparent
@@ -378,7 +386,7 @@ fun ShowNextPokemonButton(
         },
         border = BorderStroke(
             2.dp,
-            color = Color.Black
+            color = MaterialTheme.colors.onSurface
         ),
         colors = ButtonDefaults.buttonColors(
             backgroundColor = Color.Transparent

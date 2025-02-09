@@ -55,7 +55,7 @@ fun PokemonQuizScreen(navController: NavHostController) {
                 backgroundColor = Color(0xFF6EC6FF)
             ),
             shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, Color.Black),
+            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface),
             modifier = Modifier
                 .padding(8.dp)
                 .shadow(4.dp, RoundedCornerShape(8.dp))
