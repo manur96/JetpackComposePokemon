@@ -14,6 +14,7 @@ import javax.inject.Inject
 import kotlin.random.Random
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
 
 @HiltViewModel
 class PokemonQuizViewModel @Inject constructor(
@@ -40,6 +41,12 @@ class PokemonQuizViewModel @Inject constructor(
 
     private val _generationStates = mutableStateOf<Map<String, Boolean?>>(emptyMap())
     val generationStates: State<Map<String, Boolean?>> = _generationStates
+
+    private val _pokemonGuessed = mutableIntStateOf(0)
+    val pokemonGuessed: State<Int> = _pokemonGuessed
+
+    private val _pokemonCount = mutableIntStateOf(0)
+    val pokemonCount: State<Int> = _pokemonCount
 
     init {
         fetchRandomPokemon()
@@ -85,7 +92,7 @@ class PokemonQuizViewModel @Inject constructor(
     private fun fetchRandomPokemon() {
         viewModelScope.launch {
             val pokemonCount = getPokemonCount()
-            val randomNumber = Random.nextInt(1, pokemonCount + 1)  // Ajuste por si el rango no incluye el máximo
+            val randomNumber = Random.nextInt(1, pokemonCount + 1)
             _pokemonInfo.value = getPokemonInfoWithNumber(randomNumber.toString())
 
             if (_pokemonInfo.value is Resource.Success) {
@@ -114,8 +121,16 @@ class PokemonQuizViewModel @Inject constructor(
         val correctGeneration = pokemonGeneration.value.data?.generation?.name
         if (correctGeneration != null) {
             _generationStates.value = _generationStates.value.toMutableMap().apply {
-                put(correctGeneration, true) // Marcar la respuesta correcta como 'true'
+                put(correctGeneration, true)
             }
         }
+    }
+
+    fun addCorrectAnswer() {
+        _pokemonGuessed.intValue = _pokemonGuessed.intValue + 1
+    }
+
+    fun addPokemonCount() {
+        _pokemonCount.intValue = _pokemonCount.intValue + 1
     }
 }

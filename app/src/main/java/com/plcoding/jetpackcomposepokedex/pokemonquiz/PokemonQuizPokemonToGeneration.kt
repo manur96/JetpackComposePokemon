@@ -21,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -57,7 +58,14 @@ fun PokemonToGenerationQuiz(
                     .height(40.dp)
                     .align(Alignment.CenterHorizontally)
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            if (viewModel.pokemonCount.value != 0) {
+                Row(
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    GuessingCounter(viewModel)
+                }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
             when (viewModel.pokemonInfo.value) {
                 is Resource.Loading -> {
                     CircularProgressIndicator()
@@ -129,6 +137,11 @@ fun PokemonToGenerationQuiz(
                             modifier = Modifier
                                 .weight(1f)
                         )
+                    }
+                    LaunchedEffect(viewModel.isCorrectState.value) {
+                        if (viewModel.isCorrectState.value == true) {
+                            viewModel.addCorrectAnswer()
+                        }
                     }
                     ShowNextPokemonButton(
                         viewModel = viewModel,
@@ -286,6 +299,7 @@ fun GenerationsRow(
                 modifier = Modifier.weight(1f),
                 onClick = {
                     viewModel.checkIfCorrectGeneration(generation.name)
+                    viewModel.addPokemonCount()
                 }
             )
         }
@@ -419,5 +433,30 @@ fun ShowNextPokemonButton(
                     .size(18.dp)
             )
         }
+    }
+}
+
+@Composable
+fun GuessingCounter(
+    viewModel: PokemonQuizViewModel,
+) {
+    Row(
+        modifier = Modifier.padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Guessed: ${viewModel.pokemonGuessed.value} / ${viewModel.pokemonCount.value}",
+            fontSize = 18.sp,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colors.onSurface
+        )
+        Icon(
+            imageVector = Icons.Filled.Check,
+            contentDescription = "Check",
+            tint = Color.Green,
+            modifier = Modifier
+                .padding(horizontal = 6.dp)
+                .size(18.dp)
+        )
     }
 }
