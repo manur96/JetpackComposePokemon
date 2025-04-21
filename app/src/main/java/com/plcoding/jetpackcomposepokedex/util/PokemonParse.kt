@@ -55,15 +55,15 @@ fun parseStatToAbbr(stat: Stat): String {
 
 fun parseGenerationToReadableString(generation: String?): String {
     return when(generation?.lowercase()) {
-        "generation-i" -> "Generation 1\n(Kanto)"
-        "generation-ii" -> "Generation 2\n(Johto)"
-        "generation-iii" -> "Generation 3\n(Hoenn)"
-        "generation-iv" -> "Generation 4\n(Sinnoh)"
-        "generation-v" -> "Generation 5\n(Unova)"
-        "generation-vi" -> "Generation 6\n(Kalos)"
-        "generation-vii" -> "Generation 7\n(Alola)"
-        "generation-viii" -> "Generation 8\n(Galar)"
-        "generation-ix" -> "Generation 9\n(Paldea)"
+        "generation-i" -> "Generation 1\nKanto"
+        "generation-ii" -> "Generation 2\nJohto"
+        "generation-iii" -> "Generation 3\nHoenn"
+        "generation-iv" -> "Generation 4\nSinnoh"
+        "generation-v" -> "Generation 5\nUnova"
+        "generation-vi" -> "Generation 6\nKalos"
+        "generation-vii" -> "Generation 7\nAlola"
+        "generation-viii" -> "Generation 8\nGalar"
+        "generation-ix" -> "Generation 9\nPaldea"
         else -> ""
     }
 }

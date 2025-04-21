@@ -39,7 +39,7 @@ class PokemonListViewModel @Inject constructor(
 
     fun loadPokemonPaginated() {
         viewModelScope.launch {
-            when(val result = repository.getPokemonList(PAGE_SIZE, currentPage * PAGE_SIZE)) {
+            when (val result = repository.getPokemonList(PAGE_SIZE, currentPage * PAGE_SIZE)) {
                 is Resource.Success -> {
                     endReached.value = currentPage * PAGE_SIZE >= result.data!!.count
                     val pokedexEntries = result.data.results.mapIndexed { index, entry ->
@@ -48,7 +48,8 @@ class PokemonListViewModel @Inject constructor(
                         } else {
                             entry.url.takeLastWhile { it.isDigit() }
                         }
-                        val url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${numberOfPokemon}.png"
+                        val url =
+                            "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${numberOfPokemon}.png"
                         PokedexListEntry(entry.name.replaceFirstChar {
                             if (it.isLowerCase()) it.titlecase(
                                 Locale.ROOT
@@ -60,22 +61,15 @@ class PokemonListViewModel @Inject constructor(
                     isLoading.value = false
                     pokemonList.value += pokedexEntries
                 }
+
                 is Resource.Error -> {
                     loadError.value = result.message.toString()
                     isLoading.value = false
                 }
+
                 is Resource.Loading -> {
 
                 }
-            }
-        }
-    }
-
-    fun calcDominantColor(drawable: Drawable, onFinish: (Color) -> Unit) {
-        val bitmap = (drawable as BitmapDrawable).bitmap.copy(Bitmap.Config.ARGB_8888, true)
-        Palette.from(bitmap).generate { palette ->
-            palette?.dominantSwatch?.rgb?.let { colorValue ->
-                onFinish(Color(colorValue))
             }
         }
     }

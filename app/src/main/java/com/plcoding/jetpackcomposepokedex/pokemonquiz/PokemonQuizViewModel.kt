@@ -1,5 +1,8 @@
 package com.plcoding.jetpackcomposepokedex.pokemonquiz
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.plcoding.jetpackcomposepokedex.data.remote.response.Generation
@@ -12,9 +15,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.random.Random
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableIntStateOf
 
 @HiltViewModel
 class PokemonQuizViewModel @Inject constructor(

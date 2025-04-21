@@ -3,23 +3,36 @@ package com.plcoding.jetpackcomposepokedex
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.plcoding.jetpackcomposepokedex.pokemondetail.PokemonDetailScreen
@@ -87,11 +100,23 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun BottomNavigationBar(navController: NavController) {
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val route = navBackStackEntry?.destination?.route
+
         BottomNavigation {
+            val isPokedexSelected = route == "pokemon_list_screen"
+            val isQuizSelected = route == "pokemon_quiz_screen"
             BottomNavigationItem(
                 label = { Text("Pokedex") },
-                icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
-                selected = currentRoute(navController) == "pokemon_list_screen",
+                icon = {
+                    NavIconWithIndicator(
+                        iconRes = R.drawable.ic_pok_edex_icon,
+                        isSelected = isPokedexSelected,
+                        iconSize = 24.dp,
+                        iconOffsetY = (-2).dp
+                    )
+                },
+                selected = isPokedexSelected,
                 onClick = {
                     navController.navigate("pokemon_list_screen") {
                         launchSingleTop = true
@@ -101,8 +126,14 @@ class MainActivity : ComponentActivity() {
             )
             BottomNavigationItem(
                 label = { Text("Quiz") },
-                icon = { Icon(Icons.Filled.PlayArrow, contentDescription = null) },
-                selected = currentRoute(navController) == "pokemon_quiz_screen",
+                icon = {
+                    NavIconWithIndicator(
+                        iconRes = R.drawable.ic_pok_equiz,
+                        isSelected = isQuizSelected,
+                        iconSize = 23.dp
+                    )
+                },
+                selected = isQuizSelected,
                 onClick = {
                     navController.navigate("pokemon_quiz_screen") {
                         launchSingleTop = true
@@ -113,7 +144,32 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun currentRoute(navController: NavController): String? {
-        return navController.currentBackStackEntry?.destination?.route
+    @Composable
+    fun NavIconWithIndicator(
+        iconRes: Int,
+        isSelected: Boolean,
+        iconSize: Dp,
+        iconOffsetY: Dp = 0.dp
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Spacer(Modifier.height(4.dp))
+            Box(
+                modifier = Modifier
+                    .width(28.dp)
+                    .height(3.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(
+                        if (isSelected) Color(0xFF1B3D0A) else Color.Transparent
+                    )
+            )
+            Spacer(Modifier.height(6.dp))
+            Icon(
+                painter = painterResource(id = iconRes),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(iconSize)
+                    .offset(y = iconOffsetY)
+            )
+        }
     }
 }

@@ -1,10 +1,23 @@
 package com.plcoding.jetpackcomposepokedex.pokemonquiz
 
+import android.graphics.drawable.BitmapDrawable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,24 +25,27 @@ import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
+import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.material.icons.*
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -38,7 +54,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.plcoding.jetpackcomposepokedex.data.remote.response.Generation
+import com.plcoding.jetpackcomposepokedex.ui.theme.darkGreen
+import com.plcoding.jetpackcomposepokedex.ui.theme.lightGreen
+import com.plcoding.jetpackcomposepokedex.ui.theme.lightRed
 import com.plcoding.jetpackcomposepokedex.util.Resource
+import com.plcoding.jetpackcomposepokedex.util.calcDominantColor
 import com.plcoding.jetpackcomposepokedex.util.parseGenerationToReadableString
 
 @Composable
@@ -46,6 +66,10 @@ fun PokemonToGenerationQuiz(
     navController: NavController,
     viewModel: PokemonQuizViewModel = hiltViewModel()
 ) {
+    val defaultDominantColor = MaterialTheme.colors.surface
+    var dominantColor by remember {
+        mutableStateOf(defaultDominantColor)
+    }
     Surface(
         color = MaterialTheme.colors.background,
         modifier = Modifier.fillMaxSize()
@@ -53,18 +77,12 @@ fun PokemonToGenerationQuiz(
         Column {
             PokemonToGenerationTopSection(
                 navController,
+                viewModel,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(40.dp)
                     .align(Alignment.CenterHorizontally)
             )
-            if (viewModel.pokemonCount.value != 0) {
-                Row(
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
-                    GuessingCounter(viewModel)
-                }
-            }
             Spacer(modifier = Modifier.height(10.dp))
             when (viewModel.pokemonInfo.value) {
                 is Resource.Loading -> {
@@ -73,27 +91,31 @@ fun PokemonToGenerationQuiz(
 
                 is Resource.Success -> {
                     Row(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .shadow(elevation = 4.dp, shape = RoundedCornerShape(8.dp))
+                                .fillMaxWidth()
                                 .background(
                                     Brush.verticalGradient(
                                         listOf(
-                                            Color.Black,
-                                            Color.Gray
+                                            dominantColor,
+                                            defaultDominantColor
                                         )
                                     ),
-                                    shape = RoundedCornerShape(8.dp)
-                                )
-                                .border(
-                                    BorderStroke(4.dp, Color.Gray),
                                     shape = RoundedCornerShape(8.dp)
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            PokemonImage(viewModel)
+                            PokemonImage(
+                                viewModel = viewModel,
+                                onColorCalculated = { color ->
+                                    dominantColor = color
+                                }
+                            )
                         }
                     }
                 }
@@ -120,33 +142,33 @@ fun PokemonToGenerationQuiz(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
             ) {
                 CorrectOrWrongText(viewModel)
             }
             if (!viewModel.canClick.value) {
+                LaunchedEffect(viewModel.isCorrectState.value) {
+                    if (viewModel.isCorrectState.value == true) {
+                        viewModel.addCorrectAnswer()
+                    }
+                }
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = 10.dp)
                 ) {
                     if (viewModel.isCorrectState.value == false) {
                         ShowCorrectAnswerButton(
                             viewModel = viewModel,
-                            modifier = Modifier
-                                .weight(1f)
+                            modifier = Modifier.weight(1f)
                         )
-                    }
-                    LaunchedEffect(viewModel.isCorrectState.value) {
-                        if (viewModel.isCorrectState.value == true) {
-                            viewModel.addCorrectAnswer()
-                        }
                     }
                     ShowNextPokemonButton(
                         viewModel = viewModel,
-                        modifier = Modifier
-                            .weight(1f)
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -157,14 +179,15 @@ fun PokemonToGenerationQuiz(
 @Composable
 fun PokemonToGenerationTopSection(
     navController: NavController,
+    viewModel: PokemonQuizViewModel,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        contentAlignment = Alignment.TopStart,
-        modifier = modifier
-            .background(
-                Color.Transparent
-            )
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 14.dp),
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -172,19 +195,43 @@ fun PokemonToGenerationTopSection(
             tint = MaterialTheme.colors.onSurface,
             modifier = Modifier
                 .size(36.dp)
-                .offset(16.dp, 16.dp)
                 .clickable {
                     navController.popBackStack()
                 }
         )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+        ) {
+            LinearProgressIndicator(
+                progress = viewModel.pokemonGuessed.value.toFloat() / viewModel.pokemonCount.value.toFloat(),
+                modifier = Modifier
+                    .width(100.dp)
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp)),
+                color = Color(0xFF639922),
+                backgroundColor = Color(0xFFD3D1C7)
+            )
+            Text(
+                text = "${viewModel.pokemonGuessed.value} / ${viewModel.pokemonCount.value}",
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colors.onSurface
+            )
+        }
     }
 }
 
 @Composable
-fun PokemonImage(viewModel: PokemonQuizViewModel) {
+fun PokemonImage(
+    viewModel: PokemonQuizViewModel,
+    onColorCalculated: (Color) -> Unit
+) {
+    val context = LocalContext.current
     val pokemonInfo = viewModel.pokemonInfo.value
-
     val pokemonImageUrl = pokemonInfo.data?.sprites?.front_default
+
     if (pokemonInfo is Resource.Success && pokemonImageUrl != null) {
         Column {
             Text(
@@ -204,7 +251,14 @@ fun PokemonImage(viewModel: PokemonQuizViewModel) {
                 model = pokemonImageUrl,
                 contentDescription = pokemonInfo.data.name,
                 modifier = Modifier
-                    .size(200.dp)
+                    .size(200.dp),
+                onSuccess = { state ->
+                    val bitmap = (state.result.drawable as BitmapDrawable).bitmap
+                    val drawable = BitmapDrawable(context.resources, bitmap)
+                    calcDominantColor(drawable) { color ->
+                        onColorCalculated(color)
+                    }
+                }
             )
         }
     } else if (pokemonInfo is Resource.Loading) {
@@ -257,7 +311,12 @@ fun GenerationItem(
     val borderColor = when (isCorrect) {
         true -> Color.Green
         false -> Color.Red
-        else -> MaterialTheme.colors.onSurface
+        else -> Color.LightGray
+    }
+    val backgroundColor = when (isCorrect) {
+        true -> lightGreen
+        false -> lightRed
+        else -> Color.White
     }
 
     Box(
@@ -266,7 +325,7 @@ fun GenerationItem(
             .size(100.dp)
             .padding(8.dp)
             .background(
-                color = Color.Gray,
+                color = backgroundColor,
                 shape = RoundedCornerShape(8.dp)
             )
             .border(
@@ -275,11 +334,31 @@ fun GenerationItem(
             )
             .clickable(enabled = viewModel.canClick.value, onClick = onClick)
     ) {
-        Text(
-            text = parseGenerationToReadableString(generation.name),
-            textAlign = TextAlign.Center,
-            color = Color.White
-        )
+        val gen = parseGenerationToReadableString(generation.name).split("\n").first()
+        val region = parseGenerationToReadableString(generation.name).split("\n").last()
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = gen,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
+                fontSize = 21.sp,
+            )
+            Spacer(
+                modifier = Modifier
+                    .size(4.dp)
+                    .background(Color.Transparent)
+            )
+            Text(
+                text = region,
+                textAlign = TextAlign.Center,
+                fontSize = 19.sp,
+            )
+        }
     }
 }
 
@@ -310,48 +389,44 @@ fun GenerationsRow(
 fun CorrectOrWrongText(
     viewModel: PokemonQuizViewModel
 ) {
-    when (viewModel.isCorrectState.value) {
-        true -> Row(
-            modifier = Modifier.padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+    val isCorrect = viewModel.isCorrectState.value
+
+    val backgroundColor = when (isCorrect) {
+        true -> Color(0xFFEAF3DE)
+        false -> Color(0xFFFCEBEB)
+        null -> Color.Transparent
+    }
+
+    val contentColor = when (isCorrect) {
+        true -> Color(0xFF27500A)
+        false -> Color(0xFF791F1F)
+        null -> MaterialTheme.colors.onSurface
+    }
+
+    if (isCorrect != null) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(backgroundColor)
+                .padding(horizontal = 16.dp, vertical = 10.dp)
         ) {
             Icon(
-                imageVector = Icons.Filled.Check,
-                contentDescription = "Check",
-                tint = MaterialTheme.colors.onSurface,
+                imageVector = if (isCorrect) Icons.Filled.Check else Icons.Filled.Clear,
+                contentDescription = null,
+                tint = contentColor,
                 modifier = Modifier
-                    .padding(horizontal = 6.dp)
+                    .padding(end = 8.dp)
                     .size(18.dp)
             )
             Text(
-                text = "Correct answer!",
+                text = if (isCorrect) "Correct answer!" else "Wrong answer \uD83D\uDE1E",
                 fontSize = 18.sp,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colors.onSurface,
+                color = contentColor,
                 fontWeight = FontWeight.Bold
             )
         }
-        false -> Row(
-            modifier = Modifier.padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Clear,
-                contentDescription = "Clear",
-                tint = MaterialTheme.colors.onSurface,
-                modifier = Modifier
-                    .padding(horizontal = 6.dp)
-                    .size(18.dp)
-            )
-            Text(
-                text = "Wrong answer ${"\uD83D\uDE1E"}",
-                fontSize = 18.sp,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colors.onSurface,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        null -> Row { }
     }
 }
 
@@ -365,27 +440,33 @@ fun ShowCorrectAnswerButton(
             viewModel.showCorrectGeneration()
         },
         border = BorderStroke(
-            2.dp,
-            color = MaterialTheme.colors.onSurface
+            1.dp,
+            color = Color.LightGray,
         ),
+        shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.buttonColors(
             backgroundColor = Color.Transparent
         ),
         elevation = ButtonDefaults.elevation(
             defaultElevation = 0.dp,
-            pressedElevation = 2.dp,
+            pressedElevation = 1.dp,
             focusedElevation = 2.dp
         ),
         modifier = modifier
             .padding(8.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(8.dp))
     ) {
-        Text(
-            text = "Show correct answer",
-            fontSize = 18.sp,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colors.onSurface
-        )
+        Row(
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Show correct answer",
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center,
+                color = Color.Black
+            )
+        }
     }
 }
 
@@ -398,16 +479,12 @@ fun ShowNextPokemonButton(
         onClick = {
             viewModel.fetchNextPokemon()
         },
-        border = BorderStroke(
-            2.dp,
-            color = MaterialTheme.colors.onSurface
-        ),
         colors = ButtonDefaults.buttonColors(
-            backgroundColor = Color.Transparent
+            backgroundColor = darkGreen
         ),
         elevation = ButtonDefaults.elevation(
             defaultElevation = 0.dp,
-            pressedElevation = 2.dp,
+            pressedElevation = 1.dp,
             focusedElevation = 2.dp
         ),
         modifier = modifier
@@ -422,41 +499,17 @@ fun ShowNextPokemonButton(
                 text = "Next Pokémon",
                 fontSize = 18.sp,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colors.onSurface
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
             )
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = "ArrowForward",
-                tint = MaterialTheme.colors.onSurface,
+                tint = Color.White,
                 modifier = Modifier
                     .padding(horizontal = 6.dp)
                     .size(18.dp)
             )
         }
-    }
-}
-
-@Composable
-fun GuessingCounter(
-    viewModel: PokemonQuizViewModel,
-) {
-    Row(
-        modifier = Modifier.padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Guessed: ${viewModel.pokemonGuessed.value} / ${viewModel.pokemonCount.value}",
-            fontSize = 18.sp,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colors.onSurface
-        )
-        Icon(
-            imageVector = Icons.Filled.Check,
-            contentDescription = "Check",
-            tint = Color.Green,
-            modifier = Modifier
-                .padding(horizontal = 6.dp)
-                .size(18.dp)
-        )
     }
 }
