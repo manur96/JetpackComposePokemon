@@ -29,6 +29,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -91,7 +92,7 @@ fun PokemonListScreen(
                 }
             )
             Spacer(modifier = Modifier.height(8.dp))
-            PokemonList(navController= navController)
+            PokemonList(navController = navController)
         }
     }
 }
@@ -140,11 +141,21 @@ fun SearchBar(
                 singleLine = true,
                 textStyle = TextStyle(color = Color.Black),
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .weight(1f)
                     .onFocusChanged { focusState ->
                         isHintDisplayed = !focusState.isFocused && text.isEmpty()
                     }
             )
+            if (text.isNotEmpty()) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Clear search",
+                    tint = Color.Gray,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable { onSearch("") }
+                )
+            }
         }
         if (isHintDisplayed) {
             Text(
@@ -156,6 +167,7 @@ fun SearchBar(
         }
     }
 }
+
 @Composable
 fun PokemonList(
     navController: NavController,
@@ -270,7 +282,7 @@ fun PokedexEntry(
                 }
             )
             Text(
-                text = entry.pokemonName,
+                text = "#" + entry.number.toString() + " " + entry.pokemonName,
                 fontFamily = RobotoCondensed,
                 fontSize = 20.sp,
                 textAlign = TextAlign.Center,
@@ -295,7 +307,7 @@ fun PokedexRow(
                 modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(16.dp))
-            if(entries.size >= rowIndex * 2 + 2) {
+            if (entries.size >= rowIndex * 2 + 2) {
                 PokedexEntry(
                     entry = entries[rowIndex * 2 + 1],
                     navController = navController,
