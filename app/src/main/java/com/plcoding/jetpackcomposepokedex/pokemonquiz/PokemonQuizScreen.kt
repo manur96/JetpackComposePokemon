@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Icon
@@ -40,7 +42,8 @@ fun PokemonQuizScreen(navController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 18.dp, vertical = 10.dp),
+            .padding(horizontal = 18.dp, vertical = 10.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.Start
     ) {
         Spacer(modifier = Modifier.height(12.dp))
@@ -93,26 +96,11 @@ fun PokemonQuizScreen(navController: NavHostController) {
                 ) {
                     Row {
                         Text(
-                            text = "Pokemon",
-                            fontSize = 18.sp,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colors.onSurface,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "Arrow Forward",
-                            tint = Color.Black,
-                            modifier = Modifier
-                                .padding(horizontal = 6.dp)
-                                .size(18.dp)
-                        )
-                        Text(
-                            text = "Generation",
-                            fontSize = 18.sp,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colors.onSurface,
-                            fontWeight = FontWeight.Bold
+                            text = "Pokemon → Generation",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                     Text(

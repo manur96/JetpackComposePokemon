@@ -20,7 +20,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
@@ -74,7 +76,9 @@ fun PokemonToGenerationQuiz(
         color = MaterialTheme.colors.background,
         modifier = Modifier.fillMaxSize()
     ) {
-        Column {
+        Column(
+            modifier = Modifier.verticalScroll(rememberScrollState())
+        ) {
             PokemonToGenerationTopSection(
                 navController,
                 viewModel,
@@ -290,8 +294,8 @@ fun GenerationsToChoose(
 ) {
     val randomGenerations = viewModel.randomGenerations.value
     if (randomGenerations.isNotEmpty()) {
-        LazyColumn(contentPadding = PaddingValues(16.dp)) {
-            items(randomGenerations.chunked(2)) { row ->
+        Column (modifier = Modifier.padding(16.dp)) {
+            randomGenerations.chunked(2).forEach { row ->
                 GenerationsRow(viewModel = viewModel, entries = row)
             }
         }
@@ -346,7 +350,7 @@ fun GenerationItem(
                 text = gen,
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
-                fontSize = 21.sp,
+                fontSize = 20.sp,
             )
             Spacer(
                 modifier = Modifier
@@ -356,7 +360,7 @@ fun GenerationItem(
             Text(
                 text = region,
                 textAlign = TextAlign.Center,
-                fontSize = 19.sp,
+                fontSize = 18.sp,
             )
         }
     }
